@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alperen İş Saatleri</title>
+    <style>
+        body {
+            text-align: center;
+            margin: 50px;
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            color: #0066cc;
+        }
+        #shiftButton, #refreshButton, #exportButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        #shiftButton {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #refreshButton {
+            background-color: #008CBA;
+            color: white;
+            margin-right: 10px;
+        }
+        #exportButton {
+            background-color: #5bc0de;
+            color: white;
+        }
+        #exportButton:hover {
+            background-color: #2aabd2;
+        }
+        #startTime, #stopTime, #shiftDuration, #thisShiftDuration, #shiftLog, #totalDurationBox {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        #totalDurationBox, #shiftDurationBox {
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        #shiftLog {
+            text-align: left;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            overflow-y: auto;
+        }
+        .shiftEntry {
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+        #timeCounters {
+            display: flex;
+            justify-content: space-around;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        #timeCounters p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Alperen İş Saatleri</h1>
+<button id="shiftButton" onclick="toggleShift()">Başlat</button>
+<button id="exportButton" onclick="exportCSV()">Export as CSV</button>
+<button id="refreshButton" onclick="refreshPage()">Yenile</button>
+<div id="timeCounters">
+    <div>
+        <p>Başlangıç Saati</p>
+        <p id="startTime"></p>
+    </div>
+    <div>
+        <p>Bitiş Saati</p>
+        <p id="stopTime"></p>
+    </div>
+</div>
+<div id="shiftDurationBox">
+    <p id="shiftDuration"></p>
+</div>
+<div id="totalDurationBox">
+    <p id="thisShiftDuration"></p>
+</div>
+<div id="shiftLog"></div>
+
+<script>
+    let isShiftStarted = false;
+    let startTime;
+    let stopTime;
+    let shiftTimer;
+    let totalDurationMs = 0;
+    let isFirstShiftCompleted = false;
+
+    function toggleShift() {
+        const shiftButton = document.getElementById('shiftButton');
+        const shiftDuration = document.getElementById('shiftDuration');
+        const thisShiftDuration = document.getElementById('thisShiftDuration');
+        const startTimeDisplay = document.getElementById('startTime');
+        const stopTimeDisplay = document.getElementById('stopTime');
+        const shiftLog = document.getElementById('shiftLog');
+
+        if (isShiftStarted) {
+            // Stop Shift
+            stopTime = new Date();
+            shiftButton.textContent = 'Başlat';
+            isShiftStarted = false;
+
+            // Calculate duration and display stop time
+            const duration = calculateDuration(startTime, stopTime);
+            shiftDuration.textContent = `Toplam Süre: ${duration}`;
+            stopTimeDisplay.textContent = formatTime(stopTime);
+
+            // Add the duration to the total
+            totalDurationMs += stopTime - startTime;
+            updateTotalDuration(thisShiftDuration);
+
+            // Log the shift
+            logShift(startTime, stopTime, duration, shiftLog);
+
+            // Stop shift duration timer
+            clearInterval(shiftTimer);
+        } else {
+            // Start Shift
+            startTime = new Date();
+            shiftButton.textContent = 'Duraklat';
+            isShiftStarted = true;
+
+            // Clear previous duration and display start time
+            shiftDuration.textContent = '';
+            startTimeDisplay.textContent = formatTime(startTime);
+            stopTimeDisplay.textContent = '';
+
+            // Reset and start shift duration timer
+            shiftTimer = setInterval(function () {
+                const currentTime = new Date();
+                const duration = calculateDuration(startTime, currentTime);
+                shiftDuration.textContent = `Bu Shiftinin Süresi: ${duration}`;
+            }, 1000);
+
+            // Show total duration after the first shift is completed
+            if (isFirstShiftCompleted) {
+                thisShiftDuration.style.display = 'block';
+            }
+        }
+
+        // Set isFirstShiftCompleted to true after the first shift is completed
+        if (isFirstShiftCompleted === false && totalDurationMs > 0) {
+            isFirstShiftCompleted = true;
+        }
+    }
+
+    function calculateDuration(start, end) {
+        return formatDuration(end - start);
+    }
+
+    function formatDuration(durationMs) {
+        const minutes = Math.floor((durationMs % 3600000) / 60000);
+        const seconds = Math.floor((durationMs % 60000) / 1000);
+
+        if (minutes > 0) {
+            return `${minutes} dakika, ${seconds} saniye`;
+        } else {
+            return `${seconds} saniye`;
+        }
+    }
+
+    function formatTime(time) {
+        const options = { hour: 'numeric', minute: 'numeric', second: 'numeric' };
+        return time.toLocaleString('tr-TR', options);
+    }
+
+    function updateTotalDuration(display) {
+        display.textContent = `Toplam Süren: ${formatDuration(totalDurationMs)}`;
+    }
+
+    function logShift(start, stop, duration, logContainer) {
+        const shiftEntry = document.createElement('div');
+        shiftEntry.classList.add('shiftEntry');
+        shiftEntry.innerHTML = `<strong>Başlangıç:</strong> ${formatTime(start)} | <strong>Bitiş:</strong> ${formatTime(stop)} | <strong>Süre:</strong> ${duration}`;
+        logContainer.appendChild(shiftEntry);
+    }
+
+    function exportCSV() {
+        const shifts = document.querySelectorAll('.shiftEntry');
+        let csvContent = 'Başlangıç,Bitiş,Süre\n';
+
+        shifts.forEach(shift => {
+            const shiftData = shift.innerText.replace(/(?:\r\n|\r|\n)/g, '').split('|');
+            const startTime = shiftData[0].replace('Başlangıç:', '').trim();
+            const stopTime = shiftData[1].replace('Bitiş:', '').trim();
+            const duration = shiftData[2].replace('Süre:', '').trim();
+
+            csvContent += `"${startTime}","${stopTime}","${duration}"\n`;
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+
+        if (navigator.msSaveBlob) {
+            // IE 10+
+            navigator.msSaveBlob(blob, 'shift_data.csv');
+        } else {
+            // Other browsers
+            link.href = URL.createObjectURL(blob);
+            link.download = 'shift_data.csv';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+
+    function refreshPage() {
+        location.reload();
+    }
+</script>
+
+</body>
+</html>
