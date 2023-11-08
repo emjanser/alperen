@@ -250,11 +250,43 @@
     }
 
     function refreshPage() {
-        // Clear shift data from localStorage on refresh
-        localStorage.removeItem('shiftData');
-
-        // Reload the page
+        // Reload the page without clearing localStorage
         location.reload();
+    }
+
+    function saveShiftDataToLocalStorage() {
+        const shiftData = {
+            startTime: document.getElementById('startTime').textContent,
+            stopTime: document.getElementById('stopTime').textContent,
+            duration: document.getElementById('shiftDuration').textContent,
+            totalDuration: document.getElementById('thisShiftDuration').textContent,
+            totalDurationMs: totalDurationMs,
+            isFirstShiftCompleted: isFirstShiftCompleted,
+            shifts: getShiftsFromLog()
+        };
+
+        storedShiftData.push(shiftData);
+        localStorage.setItem('shiftData', JSON.stringify(storedShiftData));
+    }
+
+    function getShiftsFromLog() {
+        const shiftLogEntries = document.querySelectorAll('.shiftEntry');
+        const shifts = [];
+
+        shiftLogEntries.forEach(entry => {
+            const entryData = entry.innerText.replace(/(?:\r\n|\r|\n)/g, '').split('|');
+            const startTime = entryData[0].replace('Başlangıç:', '').trim();
+            const stopTime = entryData[1].replace('Bitiş:', '').trim();
+            const duration = entryData[2].replace('Süre:', '').trim();
+
+            shifts.push({
+                startTime: startTime,
+                stopTime: stopTime,
+                duration: duration
+            });
+        });
+
+        return shifts;
     }
 </script>
 
