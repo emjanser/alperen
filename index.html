@@ -15,7 +15,7 @@
         h1 {
             color: #0066cc;
         }
-        #shiftButton, #refreshButton, #exportButton {
+        #shiftButton, #exportButton, #refreshButton {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
@@ -109,6 +109,24 @@
     let totalDurationMs = 0;
     let isFirstShiftCompleted = false;
 
+    // Retrieve shift data from localStorage on page load
+    const storedShiftData = JSON.parse(localStorage.getItem('shiftData')) || [];
+
+    // Display the last recorded shift data
+    if (storedShiftData.length > 0) {
+        const lastShift = storedShiftData[storedShiftData.length - 1];
+        document.getElementById('startTime').textContent = lastShift.startTime;
+        document.getElementById('stopTime').textContent = lastShift.stopTime;
+        document.getElementById('shiftDuration').textContent = lastShift.duration;
+        document.getElementById('thisShiftDuration').textContent = lastShift.totalDuration;
+        const shiftLog = document.getElementById('shiftLog');
+        lastShift.shifts.forEach(shift => {
+            logShift(new Date(shift.startTime), new Date(shift.stopTime), shift.duration, shiftLog);
+        });
+        totalDurationMs = lastShift.totalDurationMs;
+        isFirstShiftCompleted = lastShift.isFirstShiftCompleted;
+    }
+
     function toggleShift() {
         const shiftButton = document.getElementById('shiftButton');
         const shiftDuration = document.getElementById('shiftDuration');
@@ -152,7 +170,7 @@
             shiftTimer = setInterval(function () {
                 const currentTime = new Date();
                 const duration = calculateDuration(startTime, currentTime);
-                shiftDuration.textContent = `Bu Shiftinin Süresi: ${duration}`;
+                shiftDuration.textContent = `Toplam Süre: ${duration}`;
             }, 1000);
 
             // Show total duration after the first shift is completed
@@ -165,6 +183,9 @@
         if (isFirstShiftCompleted === false && totalDurationMs > 0) {
             isFirstShiftCompleted = true;
         }
+
+        // Save shift data to localStorage
+        saveShiftDataToLocalStorage();
     }
 
     function calculateDuration(start, end) {
@@ -188,7 +209,7 @@
     }
 
     function updateTotalDuration(display) {
-        display.textContent = `Toplam Süren: ${formatDuration(totalDurationMs)}`;
+        display.textContent = `Bu Shiftinin Süresi: ${formatDuration(totalDurationMs)}`;
     }
 
     function logShift(start, stop, duration, logContainer) {
@@ -229,6 +250,10 @@
     }
 
     function refreshPage() {
+        // Clear shift data from localStorage on refresh
+        localStorage.removeItem('shiftData');
+
+        // Reload the page
         location.reload();
     }
 </script>
