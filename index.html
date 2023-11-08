@@ -5,76 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alperen İş Saatleri</title>
     <style>
-        body {
-            text-align: center;
-            margin: 50px;
-            font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        h1 {
-            color: #0066cc;
-        }
-        #shiftButton, #exportButton, #refreshButton {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        #shiftButton {
-            background-color: #4CAF50;
-            color: white;
-        }
-        #refreshButton {
-            background-color: #008CBA;
-            color: white;
-            margin-right: 10px;
-        }
-        #exportButton {
-            background-color: #5bc0de;
-            color: white;
-        }
-        #exportButton:hover {
-            background-color: #2aabd2;
-        }
-        #startTime, #stopTime, #shiftDuration, #thisShiftDuration, #shiftLog, #totalDurationBox {
-            margin-top: 20px;
-            font-size: 18px;
-        }
-        #totalDurationBox, #shiftDurationBox {
-            border: 2px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            margin-top: 20px;
-        }
-        #shiftLog {
-            text-align: left;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #fff;
-            overflow-y: auto;
-        }
-        .shiftEntry {
-            margin-bottom: 10px;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 5px;
-        }
-        #timeCounters {
-            display: flex;
-            justify-content: space-around;
-            border: 2px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            margin-top: 20px;
-        }
-        #timeCounters p {
-            margin: 0;
-        }
+        /* Your existing styles */
     </style>
 </head>
 <body>
@@ -265,8 +196,8 @@
             shifts: getShiftsFromLog()
         };
 
-        storedShiftData.push(shiftData);
-        localStorage.setItem('shiftData', JSON.stringify(storedShiftData));
+        // Store shift data as JSON string in localStorage
+        localStorage.setItem('shiftData', JSON.stringify(shiftData));
     }
 
     function getShiftsFromLog() {
